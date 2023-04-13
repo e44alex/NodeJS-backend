@@ -1,33 +1,13 @@
-const mongoose = require("mongoose");
 const express = require("express");
-const Schema = mongoose.Schema;
-const app = express();
-const jsonParser = express.json();
+const router = express.Router();
 
-const userScheme = new Schema({name: String, age: Number}, {versionKey: false});
-const User = mongoose.model("User", userScheme);
-
-app.use(express.static(__dirname + "/public"));
-
-async function main() {
-
-  try{
-    await mongoose.connect("mongodb://127.0.0.1:27017/usersdb");
-    app.listen(8080);
-    console.log("Сервер ожидает подключения...");
-  }
-  catch(err) {
-    return console.log(err);
-  }
-}
-
-app.get("/api/users", async (req, res)=>{
+router.get("/", async (req, res)=>{
   // получаем всех пользователей
   const users = await User.find({});
   res.send(users);
 });
 
-app.get("/api/users/:id", async(req, res)=>{
+router.get("/:id", async(req, res)=>{
 
   const id = req.params.id;
   // получаем одного пользователя по id
@@ -36,7 +16,7 @@ app.get("/api/users/:id", async(req, res)=>{
   else res.sendStatus(404);
 });
 
-app.post("/api/users", jsonParser, async (req, res) =>{
+router.post("/", jsonParser, async (req, res) =>{
 
   if(!req.body) return res.sendStatus(400);
 
@@ -48,7 +28,7 @@ app.post("/api/users", jsonParser, async (req, res) =>{
   res.send(user);
 });
 
-app.delete("/api/users/:id", async(req, res)=>{
+router.delete("/:id", async(req, res)=>{
 
   const id = req.params.id;
   // удаляем по id
@@ -57,7 +37,7 @@ app.delete("/api/users/:id", async(req, res)=>{
   else res.sendStatus(404);
 });
 
-app.put("/api/users", jsonParser, async (req, res)=>{
+router.put("/", jsonParser, async (req, res)=>{
 
   if(!req.body) return res.sendStatus(400);
   const id = req.body.id;
@@ -70,11 +50,4 @@ app.put("/api/users", jsonParser, async (req, res)=>{
   else res.sendStatus(404);
 });
 
-main();
-// прослушиваем прерывание работы программы (ctrl-c)
-process.on("SIGINT", async() => {
-
-  await mongoose.disconnect();
-  console.log("Приложение завершило работу");
-  process.exit();
-});
+module.exports = router
